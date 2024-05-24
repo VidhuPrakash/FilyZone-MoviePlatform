@@ -1,9 +1,11 @@
 "use client";
-import SearchIcon from '@mui/icons-material/Search';
+import SearchIcon from "@mui/icons-material/Search";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const NavBar = () => {
+  const router = useRouter();
   const [search, setSearch] = useState<string>("");
   const [dropdown, setDropdown] = useState<boolean>(false);
 
@@ -43,7 +45,12 @@ const NavBar = () => {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <SearchIcon className="icon" />
+          <button disabled={search === ""}>
+            <SearchIcon
+              className="icon"
+              onClick={() => router.push(`/search/${search}`)}
+            />
+          </button>
         </div>
         <img
           src="/assets/profile_icon.png"

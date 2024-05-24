@@ -5,13 +5,15 @@ import NavBar from "@/components/NavBar";
 import { Genre } from "@/lib/types";
 
 const Home = async () => {
-  const genres = fetchGenreMovies();
+  const genres = await fetchGenreMovies();
+  const example = genres.slice(0, 2);
+
   return (
     <div>
       <NavBar />
       <Hero />
       <div className="all-movies">
-        {genres.map((genre: Genre) => (
+        {example.map((genre: Genre) => (
           <CategoryList
             key={genre.id}
             title={genre.name}

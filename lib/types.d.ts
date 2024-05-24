@@ -1,8 +1,8 @@
 export interface Movie {
+  id: number;
   adult: boolean;
   backdrop_path: string;
   genre_ids: number[];
-  id: number;
   original_language: string;
   original_title: string;
   original_name: string;
@@ -21,4 +21,19 @@ export interface Genre{
     id:number
     name:string
     movies:Movie[]
+}
+export interface Genre {
+  id: number;
+  name: string;
+  movies: Movie[];
+}
+
+export interface Video {
+  type:
+    | "Bloopers"
+    | "Featurette"
+    | "Behind the Scenes"
+    | "Clip"
+    | "Trailer"
+    | "Teaser";
 }
