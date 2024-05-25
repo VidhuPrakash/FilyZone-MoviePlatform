@@ -1,17 +1,55 @@
 "use client";
 import { Genre, Movie, Video } from "@/lib/types";
-import { AddCircle, CancelRounded } from "@mui/icons-material";
+import { AddCircle, CancelRounded, RemoveCircle } from "@mui/icons-material";
+import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
+import Loader from "../Loader/Loader";
+import { Router } from "next/router";
+import { useRouter } from "next/navigation";
 
 interface Props {
   movie: Movie;
   closeModel: () => void;
   movieId: number; // Changed to lowercase 'number'
 }
+interface User {
+  email: string;
+  username: string;
+  favorites: number[];
+}
 
 const Model = ({ movie, closeModel, movieId }: Props) => {
+  const router = useRouter();
   const [video, setVideo] = useState("");
   const [genres, setGenres] = useState<Genre[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const [user, setUser] = useState<User | null>(null);
+
+  const { data: session } = useSession();
+  const [isFav, setFav] = useState(true);
+
+  const getUser = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`/api/user/${session?.user?.email}`);
+      const data = await res.json();
+      setUser(data);
+      setFav(data.favorites.find((item: number) => item === movie.id));
+      setLoading(false);
+    } catch (error) {
+      console.log(error);
+      toast.error("Can't find User");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (session) getUser();
+  }, [session]);
+
   const options = {
     method: "GET",
     headers: {
@@ -47,7 +85,27 @@ const Model = ({ movie, closeModel, movieId }: Props) => {
     getMovieDetails();
   }, [movieId]);
 
-  return (
+  const handleMyList = async () => {
+    try {
+      const res = await fetch(`/api/user/${session?.user?.email}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ movieId: movieId }),
+      });
+      const data = await res.json();
+      setUser(data);
+      setFav(data.favorites.find((item: number) => item === movie.id));
+      router.refresh();
+    } catch (error) {
+      console.log("Fail to handle my list :", error);
+    }
+  };
+
+  return loading ? (
+    <Loader />
+  ) : (
     <div className="modal">
       <button className="model-close" onClick={closeModel}>
         <CancelRounded
@@ -68,7 +126,17 @@ const Model = ({ movie, closeModel, movieId }: Props) => {
           </div>
           <div className="flex gap-3">
             <p className="text-base-bold">Add To List</p>
-            <AddCircle className="cursor-pointer text-pink-1" />
+            {isFav ? (
+              <RemoveCircle
+                className="cursor-pointer text-pink-1"
+                onClick={handleMyList}
+              />
+            ) : (
+              <AddCircle
+                onClick={handleMyList}
+                className="cursor-pointer text-pink-1"
+              />
+            )}
           </div>
         </div>
         <div className="flex gap-2">

@@ -4,6 +4,7 @@ import {
   LockOutlined,
   PersonOutline,
 } from "@mui/icons-material";
+import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React from "react";
@@ -28,8 +29,8 @@ const AuthForm = ({ type }: { type: "register" | "login" }) => {
         : { email: "", password: "" },
   });
 
+  const router = useRouter();
   const onSubmit: SubmitHandler<FormData> = async (data) => {
-    const router = useRouter();
     let res;
     if (type === "register") {
       res = await fetch("/api/auth/register", {
@@ -42,7 +43,20 @@ const AuthForm = ({ type }: { type: "register" | "login" }) => {
       if (res.ok) {
         router.push("/login");
       } else {
+        console.log("res:", res);
         toast.error("something went wrong");
+      }
+    }
+
+    if (type === "login") {
+      const res = await signIn("credentials", {
+        ...data,
+        redirect: false,
+      });
+      if (res && res?.ok) {
+        router.push("/");
+      } else {
+        toast.error("Invalid credentials");
       }
     }
   };
@@ -120,7 +134,7 @@ const AuthForm = ({ type }: { type: "register" | "login" }) => {
                 <div className="input">
                   <input
                     type="text"
-                    placeholder="email"
+                    placeholder="Email"
                     className="input-field"
                     {...register("email", {
                       required: "Email is required",
